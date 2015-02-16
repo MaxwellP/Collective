@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <script src="/socket.io/socket.io.js"></script>
+    <!--<script src="https://cdn.socket.io/socket.io-1.3.4.js"></script>-->
+    <script src="./js/game.js"></script>
+    <div id="login-register">
+        <input id ="l-r-name" type="text" placeholder="Desired name..."/>
+        <input id ="l-r-pass" type="password" placeholder="Password..."/>
+        <button onclick="login()">Login</button>
+        <button onclick="register()">Register</button>
+    </div>
+    <div id="game">
+        <div id="time">THIS IS A COUNTDOWN</div>
+        <div id="state">THIS IS A STRING</div>
+        <div id="game-adj">THIS IS A STRING</div>
+        <div id="game-noun1">THIS IS A STRING</div>
+        <div id="game-noun2">THIS IS A STRING</div>
+        <div id="game-noun3"THIS IS A STRING></div>
+    </div>
+    <div id="player">
+        <div id="player-id">THIS IS A STRING - DOESNT NEED TO BE SHOWN</div>
+        <div id="player-name">THIS IS A STRING</div>
+        <div id="player-numWins">THIS IS A NUMBER</div>
+        <div id="player-numGames">THIS IS A NUMBER</div>
+    </div>
+    <div id="results">THIS IS A TABLE</div>
+    <button onclick="input1()">Input 1 - THIS COULD BE A DIV OR IMAGE</button>
+    <button onclick="input2()">Input 2 - THIS COULD BE A DIV OR IMAGE</button>
+    <button onclick="input3()">Input 3 - THIS COULD BE A DIV OR IMAGE</button>
+    <!-- THE USERS CURRENT INPUT IS A JAVASCRIPT VARIABLE, IF NO INPUT YET, SET TO 0 -->
+</html>
