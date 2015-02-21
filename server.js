@@ -9,11 +9,14 @@ var server = http.createServer(app);
 var io = require("socket.io")(server);
 var bodyParser = require("body-parser");
 var classes = require("./server/js/classes.js");
-var port = 3000;
+var port = 80;
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use("/js", express.static(__dirname + "/client/js"));
+app.use("/css", express.static(__dirname + "/client/css"));
+app.use("/fonts", express.static(__dirname + "/client/fonts"));
+app.use("/views/about", express.static(__dirname + "/client/views/about/index.html"));
 app.get("/", function (request, response)
 {
     response.sendFile(__dirname + "/client/views/index.html");
@@ -77,13 +80,14 @@ io.on("connection", function(socket)
                 if(players[i].name == name)
                 {
                     nameExists = true;
-                    servPlayer = players[i]
+                    servPlayer = players[i];
                 }
             }
             if(nameExists)
             {
                 if(password == servPlayer.password)
                 {
+                    servPlayer[i].id = socket.id;
                     socket.emit("login-success", {player: servPlayer});
                 }
                 else
@@ -98,8 +102,7 @@ io.on("connection", function(socket)
         }
         else
         {
-            console.log("ERROR: Socket ID: " + socket.id + " != User ID: " + id);
-            socket.emit("register-fail", {message: "An error occured on the server."});
+            socket.emit("register-fail", {message: "An error occurred on the server."});
         }
     });
     socket.on("gameInput", function(data)
@@ -111,9 +114,9 @@ io.on("connection", function(socket)
             var hasDoneInput = false;
             for (var i = 0; i < gameInput.length; i +=1)
             {
-                if(gameInput[i].player == name)
+                if(gameInput[i].name == name)
                 {
-                    gameInput[i].input = input;
+                    //gameInput[i].input = input;
                     hasDoneInput = true;
                 }
             }
@@ -125,6 +128,16 @@ io.on("connection", function(socket)
                     if(name == players[i].name)
                     {
                         players[i].numGames += 1;
+                    }
+                }
+            }
+            else
+            {
+                for(var i = 0; i < gameInput.length; i += 1)
+                {
+                    if(gameInput[i].name == name)
+                    {
+                        gameInput[i].input = input;
                     }
                 }
             }
@@ -234,18 +247,16 @@ function scoreData()
         {value: 3, score: input3Score}
     ];
     var toReward = [check[0]];
-    for(var i = 1; i < check.length; i += 1)
-    {
-        if(check[i].score > toReward[0].score)
-        {
+    for(var i = 1; i < check.length; i += 1) {
+        if (check[i].score > toReward[0].score) {
             toReward = [];
             toReward.push(check[i])
         }
-        else if(check[i].score === toReward[0].score)
-        {
+        else if (check[i].score === toReward[0].score) {
             toReward.push(check[i])
         }
     }
+    io.emit("got-winners", {winners: toReward});
     for(var i = 0; i < toReward.length; i +=1)
     {
         rewardScore(toReward[i].value);
@@ -257,12 +268,6 @@ function rewardScore(score)
     {
         for(var j = 0; j < players.length; j += 1)
         {
-            console.log("CHECKING NAMES");
-            console.log("   " + gameInput[i].name);
-            console.log("   " + players[j].name);
-            console.log("CHECKING SCORE");
-            console.log("   " + score);
-            console.log("***");
             if(gameInput[i].name === players[j].name)
             {
                 if(gameInput[i].input == score)
@@ -272,4 +277,4 @@ function rewardScore(score)
             }
         }
     }
-}
+};

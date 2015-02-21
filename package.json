@@ -1,5 +1,5 @@
 {
-  "name": "application-name",
+  "name": "Collective",
   "version": "0.0.1",
   "dependencies": {
     "body-parser": "^1.12.0",

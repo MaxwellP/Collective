@@ -28,9 +28,6 @@ function register()
 {
     var name = document.getElementById("l-r-name").value
     var password = document.getElementById("l-r-pass").value
-    console.log("ATTEMPTED REGISTRATION");
-    console.log("    " + name);
-    console.log("    " + password);
     if(name != "")
     {
         if(password != "")
@@ -39,64 +36,79 @@ function register()
         }
         else
         {
-            console.log("Please enter a valid password");
+            document.getElementById("register").innerHTML = "Register<br>Please enter a valid password";
         }
     }
     else
     {
-        console.log("Please enter a valid name");
+        document.getElementById("register").innerHTML = "Register<br>Please enter a valid name";
     }
+};
+function displayGame()
+{
+    document.getElementById("title").style.display = "none";
+    document.getElementById("state").style.display = "none";
+    document.getElementById("login-register").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    document.getElementById("player").style.display = "block";
+    document.getElementById("about").style.display = "none";
 };
 socket.on("register-success", function(data)
 {
-    console.log("You successfully registered, " + data.player.name);
-    console.log(data);
     document.getElementById("player").value = data.name;
     document.getElementById("l-r-name").value = "";
     document.getElementById("l-r-pass").value = "";
     player = data.player;
+    displayGame()
 });
 socket.on("register-fail", function(data)
 {
-    console.log(data.message);
+    document.getElementById("register").innerHTML = "Register<br>" + data.message;
 });
 function login(name, password)
 {
     var name = document.getElementById("l-r-name").value
     var password = document.getElementById("l-r-pass").value
-    console.log("ATTEMPTED LOGIN");
-    console.log("    " + name);
-    console.log("    " + password);
     socket.emit("login", {id: socket.id, name: name, password: password});
 };
 socket.on("login-success", function(data)
 {
-    console.log("Welcome back, " + data.player.name);
     player = data.player;
-    console.log(data);
     document.getElementById("player").value = data.player.name + ", " + data.player.numWins + "/" + data.player.numGames;
     document.getElementById("l-r-name").value = "";
     document.getElementById("l-r-pass").value = "";
+    displayGame()
 });
 socket.on("login-fail", function(data)
 {
-    console.log(data.message);
+    document.getElementById("register").innerHTML = "Register<br>" + data.message;
 });
 /********************************/
 /*Message Handling*/
 socket.on('get-time-game', function (data)
 {
-    time = data.second;
-    var time_div = document.getElementById("time");
-    time_div.innerHTML = 60 - time;
-
     game = data.game;
+    time = data.second;
     var state_div = document.getElementById("state");
     state_div.innerHTML = game.state;
-    if(game.state === "Reset")
+    var time_div = document.getElementById("time");
+    time_div.innerHTML = 60 - time;
+    var time_message_div = document.getElementById("time-message");
+    switch(game.state)
     {
-        currentInput = 0;
-    }
+        case "Input":
+            time_message_div.innerHTML = "Select a noun";
+            break;
+        case "Results":
+            time_message_div.innerHTML = "Showing results";
+            break;
+        /*State = Reset*/
+        default:
+            time_message_div.innerHTML = "Preparing silly words";
+            currentInput = 0;
+            showSelection();
+            break;
+    };
 
     var game_adj_div = document.getElementById("game-adj");
     game_adj_div.innerHTML = game.adjective;
@@ -120,12 +132,10 @@ socket.on('get-time-game', function (data)
 });
 socket.on("out-result", function(data)
 {
-    console.log(data);
     if(!didGetResults && state == "Results")
     {
         results = data;
         didGetResults = true;
-        console.log(data);
         var results_div = document.getElementById("results");
         results_div.innerHTML = data;
     }
@@ -135,26 +145,107 @@ socket.on("out-player", function (data)
 {
     player = data.player;
 });
+socket.on("got-winners", function(data)
+{
+    var game_noun1_div = document.getElementById("game-noun1");
+    game_noun1_div.style.textDecoration = "line-through";
+    var game_noun2_div = document.getElementById("game-noun2");
+    game_noun2_div.style.textDecoration = "line-through";
+    var game_noun3_div = document.getElementById("game-noun3");
+    game_noun3_div.style.textDecoration = "line-through";
+    for(var i = 0; i < data.winners.length; i += 1)
+    {
+        switch(data.winners[i].value)
+        {
+            case 1:
+                game_noun1_div.style.textDecoration = "none";
+                break;
+            case 2:
+                game_noun2_div.style.textDecoration = "none";
+                break;
+            case 3:
+                game_noun3_div.style.textDecoration = "none";
+                break;
+            default:
+                break;
+        };
+    }
+    switch(currentInput)
+    {
+        case 1:
+            game_noun1_div.style.textDecoration += " underline";
+            break;
+        case 2:
+            game_noun2_div.style.textDecoration += " underline";
+            break;
+        case 3:
+            game_noun3_div.style.textDecoration += " underline";
+            break;
+        default:
+            break;
+    }
+});
 /******************/
 /*Gameplay Related Functions*/
 function input1()
 {
     currentInput = 1;
-    socket.emit("gameInput", {name: player.name, input: 1})
+    socket.emit("gameInput", {name: player.name, input: 1});
+    showSelection();
 };
 function input2()
 {
     currentInput = 2;
-    socket.emit("gameInput", {name: player.name, input: 2})
+    socket.emit("gameInput", {name: player.name, input: 2});
+    showSelection();
 };
 function input3()
 {
     currentInput = 3;
-    socket.emit("gameInput", {name: player.name, input: 3})
+    socket.emit("gameInput", {name: player.name, input: 3});
+    showSelection();
 };
 function getPlayer()
 {
     socket.emit("get-player", {id: socket.id});
-}
+};
+function showSelection()
+{
+    switch(currentInput)
+    {
+        case 1:
+            var game_noun1_div = document.getElementById("game-noun1");
+            game_noun1_div.style.textDecoration = "underline";
+            var game_noun2_div = document.getElementById("game-noun2");
+            game_noun2_div.style.textDecoration = "none";
+            var game_noun3_div = document.getElementById("game-noun3");
+            game_noun3_div.style.textDecoration = "none";
+            break;
+        case 2:
+            var game_noun1_div = document.getElementById("game-noun1");
+            game_noun1_div.style.textDecoration = "none";
+            var game_noun2_div = document.getElementById("game-noun2");
+            game_noun2_div.style.textDecoration = "underline";
+            var game_noun3_div = document.getElementById("game-noun3");
+            game_noun3_div.style.textDecoration = "none";
+            break;
+        case 3:
+            var game_noun1_div = document.getElementById("game-noun1");
+            game_noun1_div.style.textDecoration = "none";
+            var game_noun2_div = document.getElementById("game-noun2");
+            game_noun2_div.style.textDecoration = "none";
+            var game_noun3_div = document.getElementById("game-noun3");
+            game_noun3_div.style.textDecoration = "underline";
+            break;
+        default:
+            var game_noun1_div = document.getElementById("game-noun1");
+            game_noun1_div.style.textDecoration = "none";
+            var game_noun2_div = document.getElementById("game-noun2");
+            game_noun2_div.style.textDecoration = "none";
+            var game_noun3_div = document.getElementById("game-noun3");
+            game_noun3_div.style.textDecoration = "none";
+            break;
+    }
+};
 socket.on("cannot-input", function(data) {console.log(data.message);});
 /****************************/

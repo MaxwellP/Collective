@@ -30,6 +30,8 @@ module.exports = {
         this.state = "";
     }
 };
+/*LONGEST ADJECTIVE: black-and-white*/
+/*LONGEST NOUN: great-grandfather*/
 var adjectives = [
     "abandoned",
     "able",
