@@ -9,7 +9,7 @@ var server = http.createServer(app);
 var io = require("socket.io")(server);
 var bodyParser = require("body-parser");
 var classes = require("./server/js/classes.js");
-var port = 80;
+var port = process.env.PORT || 80;
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -63,7 +63,7 @@ io.on("connection", function(socket)
         else
         {
             console.log("ERROR: Socket ID: " + socket.id + " != User ID: " + id);
-            socket.emit("register-fail", {message: "An error occured on the server."});
+            socket.emit("register-fail", {message: "An error occurred on the server."});
         }
     });
     socket.on("login", function(data)
@@ -81,14 +81,15 @@ io.on("connection", function(socket)
                 {
                     nameExists = true;
                     servPlayer = players[i];
+                    players[i].id = data.id;
                 }
             }
             if(nameExists)
             {
                 if(password == servPlayer.password)
                 {
-                    servPlayer[i].id = socket.id;
                     socket.emit("login-success", {player: servPlayer});
+
                 }
                 else
                 {
